@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body{
+            user-select: none;
+        }
+        canvas{
+            /* border: 2px solid #333; */
+            background: #333;
+            user-select: none;
+            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAYtJREFUSMdjWJnO/Hd7EcPfc30Mj9/tYshmoAWYGsb4b3oYw//TXQz//58F49//zzFc+H+eIf//fwZWqliyoYD906IE9v//d0jBLIHjf2cZ/u28ZLueYkseL+HJ/b/c8P//5cZAi2QwLOq7nPSP4eaDLIot+r9W6y/YEjSL1lxw/89w/f5/hhsP/jHcuJ9JmSXb5e7DLQHhnTL/V170glgAw5Ra9H+fWBGyJed2WP5nOHIG1RKqWLRW9x/IgvM7Lf4zbNsLwbgsIjeONh/0Or5mt+8/uAW0sojh8Jkehh37ibeI7KAbtWjUokFvkcuWtf00t4jn0rV/57M9SmlmEc+Fa/8PF/j//x+o/Od/sKo51S2CWxCgDMGBKrvIrx+wWbR9//9pOYEICyD4HWW1HbJFQAvKs0L/n9Vi+P/Ehh/ZJ3cprlWNly3aArIIZgEMwy0KUplMlcbI9jCTGee1Gf8hWwLCz+wEX/+PVuGjWtPqmYOQxy0TzkeX9Zh/X9Vn/X7XnOvMa3cuSZAcAK5sp1NkI1YqAAAAAElFTkSuQmCC'), crosshair;
+        }
+        #text,.textdis{
+            ime-mode: disabled;
+            -webkit-ime-mode : disabled;
+        }
+    </style>
+</head>
+<body>
+    <canvas id='canvas' width="600" height="400"></canvas>
+    <br>
+    <button id="clear">clear</button>
+    <button id='undo'>undo</button>
+    <br>
+    <input id='text' type="tel">
+    <textarea class='textdis' cols='60' rows='10' autocomplete="off" disableautocomplete></textarea>
+    <script>
+        var can = document.getElementById('canvas')
+        var ctx = can.getContext('2d')
+        var x, y
+        var lock = false
+        can.onmousedown = function(e){
+            x = e.offsetX
+            y = e.offsetY
+            drawPoint(x,y)
+            lock = true
+        }
+        var canArr = new Array()
+        function canPush(){
+            canArr.push(can.toDataURL())
+        }
+        document.onmousemove = function(e){
+            if(!lock) return;
+            var x2 = e.offsetX
+            var y2 = e.offsetY
+            drawPath(x2,y2)
+            x = x2
+            y = y2
+        }
+        document.onmouseup = function(e){  
+            lock && canPush()
+            lock = false
+        }
+        function drawPoint(x,y){
+            ctx.save()
+            ctx.beginPath()
+            ctx.arc(x,y,2,0,2*Math.PI)
+            ctx.fillStyle = '#f00'
+            ctx.strokeStyle = '#f00'
+            ctx.fill()
+            ctx.stroke()
+            ctx.restore()
+        }
+        function drawPath(x2,y2){
+            ctx.save()
+            ctx.beginPath();
+            ctx.moveTo(x, y)
+            ctx.lineTo(x2, y2)
+            ctx.lineWidth = 4
+            ctx.lineCap = 'round'
+            ctx.strokeStyle = '#f00'
+            ctx.stroke()
+            ctx.restore();
+        }
+        document.querySelector('#clear').onclick = canclear
+        function canclear(){
+            ctx.clearRect(0, 0, 600, 400)
+            canArr = new Array()
+        }
+        document.querySelector('#undo').onclick = function(){
+            ctx.clearRect(0, 0, 600, 400)
+            if(canArr.length <= 1){
+                canclear()
+                return
+            }
+            let image = new Image()
+            canArr.pop()            
+            image.src = canArr[canArr.length - 1]
+            image.onload = function(time1){
+                ctx.drawImage(image,0,0)
+           }
+        }
+
+        /**********************************************************************/ 
+
+       document.querySelector('.textdis').addEventListener('compositionstart',function(e){
+           this.blur()
+           alert('请把输入法模式改为英文输入')
+           var self =this
+           setTimeout(()=>{
+               self.focus()
+           },0)
+        },false)
+        document.getElementById('text').addEventListener('compositionstart',function(e){
+           console.log(this.value.length);
+           this.blur()
+           alert('请切换输入法')
+           var self =this
+           setTimeout(()=>{
+               self.focus()
+           },0)
+        },false)
+    </script>
+</body>
+</html>
